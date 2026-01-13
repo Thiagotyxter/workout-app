@@ -80,7 +80,7 @@ export const WORKOUTS = {
         },
         {
             id: 9,
-            name: 'Chuta-Chuta',
+            name: 'Chuta Chuta Reverso',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Deitado de bruços, flexione os joelhos trazendo os calcanhares em direção aos glúteos',
             gifUrl: 'https://treinomestre.com.br/wp-content/uploads/2017/11/cadeira-flexora-e-a-mesa-flexora-diferencas.jpg',
@@ -96,7 +96,7 @@ export const WORKOUTS = {
         },
         {
             id: 11,
-            name: 'Cadeira Extensora',
+            name: 'Chuta Chuta',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Sentado, estenda completamente os joelhos contra a resistência',
             gifUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsEOBQBeHcOyX6mlst8nIYaOG-VeR4ppNWnQ&s',
@@ -206,7 +206,7 @@ export const WORKOUTS = {
         },
         {
             id: 24,
-            name: 'Cadeira Extensora',
+            name: 'Chuta Chuta',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Sentado, estenda completamente os joelhos contra a resistência',
             gifUrl: 'https://treinomestre.com.br/wp-content/uploads/2016/08/cadeira-extensora-cp.jpg',
@@ -214,7 +214,7 @@ export const WORKOUTS = {
         },
         {
             id: 25,
-            name: 'Mesa Flexora',
+            name: 'Chuta Chuta Reverso',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Deitado de bruços na mesa, flexione os joelhos trazendo os calcanhares aos glúteos',
             gifUrl: 'https://grandeatleta.com.br/wp-content/uploads/2018/07/mesa-flexora.jpg',
