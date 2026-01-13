@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Trophy, Calendar, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Circle, Trophy, Calendar, TrendingUp, ArrowUpRight, Activity } from 'lucide-react';
+import { WORKOUTS } from '../data/workouts';
 
-const ProgressTracker = () => {
+const ProgressTracker = ({ currentWeek }) => {
     const WEEKS = 12;
     const WORKOUT_TYPES = ['Superior A', 'Inferior A', 'Superior B', 'Inferior B'];
 
@@ -34,10 +35,31 @@ const ProgressTracker = () => {
 
     const stats = calculateStats();
 
+    // Get all exercises to show evolution
+    const allExercises = Object.values(WORKOUTS).flat();
+
+    const getExerciseEvolution = (exerciseId) => {
+        const week1 = JSON.parse(localStorage.getItem(`exercise-log-${exerciseId}-week-1`)) || [];
+        const current = JSON.parse(localStorage.getItem(`exercise-log-${exerciseId}-week-${currentWeek}`)) || [];
+
+        const getSummary = (logs) => {
+            if (!logs || logs.length === 0) return null;
+            const validLogs = logs.filter(l => l.weight || l.reps);
+            if (validLogs.length === 0) return null;
+            // Return first set as summary
+            return `${validLogs[0].weight || '0'}kg x ${validLogs[0].reps || '0'}`;
+        };
+
+        return {
+            start: getSummary(week1),
+            current: getSummary(current)
+        };
+    };
+
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+        <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in space-y-12">
             {/* Header Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="glass-card p-6 flex items-center gap-4">
                     <div className="bg-primary-500/20 p-3 rounded-xl">
                         <Trophy className="w-8 h-8 text-primary-400" />
@@ -77,57 +99,127 @@ const ProgressTracker = () => {
                 </div>
             </div>
 
-            {/* Weeks Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(WEEKS)].map((_, weekIndex) => {
-                    const weekNum = weekIndex + 1;
-                    const weekCompleted = WORKOUT_TYPES.filter(type => progress[`week-${weekNum}-${type}`]).length;
+            {/* Evolution Section */}
+            <section className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <Activity className="w-6 h-6 text-primary-400" />
+                    <h2 className="text-2xl font-bold text-white">Evolução de Cargas</h2>
+                </div>
 
-                    return (
-                        <div key={weekIndex} className="glass-card overflow-hidden flex flex-col">
-                            <div className="bg-dark-800/50 px-4 py-3 border-b border-dark-700/50 flex justify-between items-center">
-                                <h3 className="font-bold text-white">Semana {weekNum}</h3>
-                                <span className="text-xs font-medium px-2 py-1 bg-dark-700 rounded-lg text-dark-300">
-                                    {weekCompleted}/4
-                                </span>
-                            </div>
+                <div className="glass-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-dark-800/50 border-b border-dark-700/50">
+                                    <th className="px-6 py-4 text-xs font-bold text-dark-400 uppercase tracking-widest">Exercício</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-dark-400 uppercase tracking-widest text-center">Início (S1)</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-dark-400 uppercase tracking-widest text-center">Atual (S{currentWeek})</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-dark-400 uppercase tracking-widest text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-dark-800/50">
+                                {allExercises.map((ex) => {
+                                    const evolution = getExerciseEvolution(ex.id);
+                                    if (!evolution.start && !evolution.current) return null;
 
-                            <div className="p-4 space-y-3 flex-1">
-                                {WORKOUT_TYPES.map(type => {
-                                    const isDone = progress[`week-${weekNum}-${type}`];
                                     return (
-                                        <button
-                                            key={type}
-                                            onClick={() => toggleWorkout(weekNum, type)}
-                                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-300 border ${isDone
-                                                    ? 'bg-primary-500/10 border-primary-500/30 text-white'
-                                                    : 'bg-dark-900/50 border-dark-700/50 text-dark-400 hover:border-dark-600'
-                                                }`}
-                                        >
-                                            <span className="text-sm font-medium">{type}</span>
-                                            {isDone ? (
-                                                <CheckCircle2 className="w-5 h-5 text-primary-400" />
-                                            ) : (
-                                                <Circle className="w-5 h-5 text-dark-600" />
-                                            )}
-                                        </button>
+                                        <tr key={ex.id} className="hover:bg-dark-800/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm font-bold text-white">{ex.name}</p>
+                                                <p className="text-[10px] text-dark-500 uppercase">{ex.muscle}</p>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-sm text-dark-400">{evolution.start || '---'}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-sm font-bold text-primary-400">{evolution.current || '---'}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                {evolution.start && evolution.current && (
+                                                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/10 text-green-400 text-[10px] font-bold">
+                                                        <ArrowUpRight className="w-3 h-3" />
+                                                        EVOLUINDO
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
                                     );
                                 })}
-                            </div>
+                                {!allExercises.some(ex => {
+                                    const ev = getExerciseEvolution(ex.id);
+                                    return ev.start || ev.current;
+                                }) && (
+                                        <tr>
+                                            <td colSpan="4" className="px-6 py-12 text-center text-dark-500 italic text-sm">
+                                                Comece a preencher as cargas nos treinos para ver sua evolução aqui!
+                                            </td>
+                                        </tr>
+                                    )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
-                            {/* Mini progress bar for the week */}
-                            <div className="h-1 bg-dark-800">
-                                <div
-                                    className="h-full bg-primary-500 transition-all duration-500"
-                                    style={{ width: `${(weekCompleted / 4) * 100}%` }}
-                                ></div>
+            {/* Weeks Grid */}
+            <section className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <Calendar className="w-6 h-6 text-primary-400" />
+                    <h2 className="text-2xl font-bold text-white">Checklist de Treinos</h2>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {[...Array(WEEKS)].map((_, weekIndex) => {
+                        const weekNum = weekIndex + 1;
+                        const weekCompleted = WORKOUT_TYPES.filter(type => progress[`week-${weekNum}-${type}`]).length;
+
+                        return (
+                            <div key={weekIndex} className={`glass-card overflow-hidden flex flex-col transition-all duration-500 ${weekNum === currentWeek ? 'ring-2 ring-primary-500/50 shadow-lg shadow-primary-500/10' : ''}`}>
+                                <div className="bg-dark-800/50 px-4 py-3 border-b border-dark-700/50 flex justify-between items-center">
+                                    <h3 className="font-bold text-white">Semana {weekNum}</h3>
+                                    <span className="text-xs font-medium px-2 py-1 bg-dark-700 rounded-lg text-dark-300">
+                                        {weekCompleted}/4
+                                    </span>
+                                </div>
+
+                                <div className="p-4 space-y-3 flex-1">
+                                    {WORKOUT_TYPES.map(type => {
+                                        const isDone = progress[`week-${weekNum}-${type}`];
+                                        return (
+                                            <button
+                                                key={type}
+                                                onClick={() => toggleWorkout(weekNum, type)}
+                                                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-300 border ${isDone
+                                                    ? 'bg-primary-500/10 border-primary-500/30 text-white'
+                                                    : 'bg-dark-900/50 border-dark-700/50 text-dark-400 hover:border-dark-600'
+                                                    }`}
+                                            >
+                                                <span className="text-sm font-medium">{type}</span>
+                                                {isDone ? (
+                                                    <CheckCircle2 className="w-5 h-5 text-primary-400" />
+                                                ) : (
+                                                    <Circle className="w-5 h-5 text-dark-600" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Mini progress bar for the week */}
+                                <div className="h-1 bg-dark-800">
+                                    <div
+                                        className="h-full bg-primary-500 transition-all duration-500"
+                                        style={{ width: `${(weekCompleted / 4) * 100}%` }}
+                                    ></div>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            </section>
         </div>
     );
 };
+
 
 export default ProgressTracker;

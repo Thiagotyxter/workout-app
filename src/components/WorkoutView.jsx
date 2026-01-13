@@ -3,7 +3,7 @@ import { WORKOUTS, DAYS } from '../data/workouts';
 import ExerciseCard from './ExerciseCard';
 import RestDay from './RestDay';
 
-const WorkoutView = ({ selectedDay }) => {
+const WorkoutView = ({ selectedDay, currentWeek }) => {
     const day = DAYS[selectedDay];
     const workoutType = day.workout;
 
@@ -23,7 +23,7 @@ const WorkoutView = ({ selectedDay }) => {
                     {workoutType}
                 </h1>
                 <p className="text-dark-400 text-sm sm:text-base">
-                    {day.name} • {exercises.length} exercícios
+                    Semana {currentWeek} • {day.name} • {exercises.length} exercícios
                 </p>
             </div>
 
@@ -34,6 +34,7 @@ const WorkoutView = ({ selectedDay }) => {
                         key={exercise.id}
                         exercise={exercise}
                         index={index}
+                        currentWeek={currentWeek}
                     />
                 ))}
             </div>

@@ -14,6 +14,14 @@ function App() {
 
     const [selectedDay, setSelectedDay] = useState(getCurrentDay());
     const [activeTab, setActiveTab] = useState('workout'); // 'workout' or 'progress'
+    const [currentWeek, setCurrentWeek] = useState(() => {
+        const saved = localStorage.getItem('workout-current-week');
+        return saved ? parseInt(saved) : 1;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('workout-current-week', currentWeek.toString());
+    }, [currentWeek]);
 
     return (
         <div className="min-h-screen bg-dark-950">
@@ -30,33 +38,52 @@ function App() {
                                     Workout App
                                 </h1>
                                 <p className="text-xs sm:text-sm text-dark-400">
-                                    Seu treino semanal personalizado
+                                    Semana {currentWeek} • Seu treino personalizado
                                 </p>
                             </div>
                         </div>
 
-                        {/* Navigation Tabs */}
-                        <div className="flex bg-dark-800/50 p-1 rounded-xl border border-dark-700/50 self-start sm:self-center">
-                            <button
-                                onClick={() => setActiveTab('workout')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'workout'
-                                        ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
-                                        : 'text-dark-400 hover:text-white'
-                                    }`}
-                            >
-                                <LayoutGrid className="w-4 h-4" />
-                                Treino
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('progress')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'progress'
-                                        ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
-                                        : 'text-dark-400 hover:text-white'
-                                    }`}
-                            >
-                                <CheckSquare className="w-4 h-4" />
-                                Progresso
-                            </button>
+                        {/* Week and Tab Navigation */}
+                        <div className="flex flex-wrap items-center gap-3">
+                            {/* Week Selector */}
+                            <div className="flex items-center bg-dark-800/50 p-1 rounded-xl border border-dark-700/50">
+                                <span className="text-[10px] font-bold text-dark-500 px-2 uppercase tracking-widest">Semana</span>
+                                <select
+                                    value={currentWeek}
+                                    onChange={(e) => setCurrentWeek(parseInt(e.target.value))}
+                                    className="bg-transparent text-white text-sm font-bold focus:outline-none pr-2 cursor-pointer"
+                                >
+                                    {[...Array(12)].map((_, i) => (
+                                        <option key={i + 1} value={i + 1} className="bg-dark-900">
+                                            {i + 1}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Navigation Tabs */}
+                            <div className="flex bg-dark-800/50 p-1 rounded-xl border border-dark-700/50">
+                                <button
+                                    onClick={() => setActiveTab('workout')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'workout'
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                                            : 'text-dark-400 hover:text-white'
+                                        }`}
+                                >
+                                    <LayoutGrid className="w-4 h-4" />
+                                    Treino
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('progress')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'progress'
+                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                                            : 'text-dark-400 hover:text-white'
+                                        }`}
+                                >
+                                    <CheckSquare className="w-4 h-4" />
+                                    Progresso
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -72,12 +99,12 @@ function App() {
 
                     {/* Workout Content */}
                     <main className="pb-12">
-                        <WorkoutView selectedDay={selectedDay} />
+                        <WorkoutView selectedDay={selectedDay} currentWeek={currentWeek} />
                     </main>
                 </>
             ) : (
                 <main className="pb-12">
-                    <ProgressTracker />
+                    <ProgressTracker currentWeek={currentWeek} />
                 </main>
             )}
 
