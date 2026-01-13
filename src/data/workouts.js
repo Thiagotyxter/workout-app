@@ -80,7 +80,7 @@ export const WORKOUTS = {
         },
         {
             id: 9,
-            name: 'Cadeira Flexora',
+            name: 'Chuta-Chuta',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Deitado de bruços, flexione os joelhos trazendo os calcanhares em direção aos glúteos',
             gifUrl: 'https://treinomestre.com.br/wp-content/uploads/2017/11/cadeira-flexora-e-a-mesa-flexora-diferencas.jpg',
