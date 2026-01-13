@@ -1,11 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from './lib/supabaseClient';
 import DaySelector from './components/DaySelector';
 import WorkoutView from './components/WorkoutView';
 import ProgressTracker from './components/ProgressTracker';
-import { Dumbbell, LayoutGrid, CheckSquare } from 'lucide-react';
+import Login from './components/Login';
+import { Dumbbell, LayoutGrid, CheckSquare, LogOut, User } from 'lucide-react';
 import './index.css';
 
 function App() {
+    const [session, setSession] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Check active session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setLoading(false);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
     // Get current day of week (0 = Sunday, 1 = Monday, etc.)
     const getCurrentDay = () => {
         const today = new Date().getDay();
@@ -23,24 +43,51 @@ function App() {
         localStorage.setItem('workout-current-week', currentWeek.toString());
     }, [currentWeek]);
 
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-dark-950 flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!session) {
+        return <Login />;
+    }
+
     return (
         <div className="min-h-screen bg-dark-950">
             {/* Header */}
             <header className="bg-dark-900/50 backdrop-blur-lg border-b border-dark-700/50 sticky top-0 z-[60]">
                 <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-gradient-to-br from-primary-600 to-accent-600 p-2.5 rounded-xl shadow-lg shadow-primary-500/20">
-                                <Dumbbell className="w-6 h-6 text-white" />
+                        <div className="flex items-center justify-between w-full sm:w-auto">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-gradient-to-br from-primary-600 to-accent-600 p-2.5 rounded-xl shadow-lg shadow-primary-500/20">
+                                    <Dumbbell className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl sm:text-2xl font-bold gradient-text">
+                                        Workout App
+                                    </h1>
+                                    <p className="text-xs sm:text-sm text-dark-400">
+                                        Semana {currentWeek} • Seu treino personalizado
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold gradient-text">
-                                    Workout App
-                                </h1>
-                                <p className="text-xs sm:text-sm text-dark-400">
-                                    Semana {currentWeek} • Seu treino personalizado
-                                </p>
-                            </div>
+
+                            {/* Mobile Logout */}
+                            <button
+                                onClick={handleLogout}
+                                className="sm:hidden p-2 text-dark-400 hover:text-red-400 transition-colors"
+                                title="Sair"
+                            >
+                                <LogOut className="w-5 h-5" />
+                            </button>
                         </div>
 
                         {/* Week and Tab Navigation */}
@@ -66,8 +113,8 @@ function App() {
                                 <button
                                     onClick={() => setActiveTab('workout')}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'workout'
-                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
-                                            : 'text-dark-400 hover:text-white'
+                                        ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                                        : 'text-dark-400 hover:text-white'
                                         }`}
                                 >
                                     <LayoutGrid className="w-4 h-4" />
@@ -76,12 +123,26 @@ function App() {
                                 <button
                                     onClick={() => setActiveTab('progress')}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeTab === 'progress'
-                                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
-                                            : 'text-dark-400 hover:text-white'
+                                        ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/20'
+                                        : 'text-dark-400 hover:text-white'
                                         }`}
                                 >
                                     <CheckSquare className="w-4 h-4" />
                                     Progresso
+                                </button>
+                            </div>
+
+                            {/* Desktop User/Logout */}
+                            <div className="hidden sm:flex items-center gap-2 ml-2 pl-4 border-l border-dark-700/50">
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest">Usuário</span>
+                                    <span className="text-xs text-dark-300 max-w-[120px] truncate">{session.user.email}</span>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="p-2 bg-dark-800 hover:bg-red-500/10 text-dark-400 hover:text-red-400 rounded-xl border border-dark-700/50 transition-all"
+                                >
+                                    <LogOut className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
