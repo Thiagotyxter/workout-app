@@ -214,7 +214,7 @@ export const WORKOUTS = {
         },
         {
             id: 25,
-            name: 'Chuta Chuta Reverso',
+            name: 'Mesa Flexora',
             sets: [{ reps: '5-9', count: 1 }, { reps: '8-12', count: 1 }],
             description: 'Deitado de bruços na mesa, flexione os joelhos trazendo os calcanhares aos glúteos',
             gifUrl: 'https://grandeatleta.com.br/wp-content/uploads/2018/07/mesa-flexora.jpg',
