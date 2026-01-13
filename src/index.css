@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-50 font-sans antialiased;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(217, 70, 239, 0.1) 0px, transparent 50%);
+    min-height: 100vh;
+  }
+}
+
+
+@layer components {
+  .glass-card {
+    @apply bg-dark-900/50 backdrop-blur-xl border border-dark-700/50 rounded-2xl shadow-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:bg-dark-800/60 hover:border-primary-500/30 hover:shadow-primary-500/20 hover:shadow-xl hover:scale-[1.02];
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-primary-500/50 hover:scale-105 active:scale-95;
+  }
+
+  .day-tab {
+    @apply px-4 py-3 rounded-xl font-medium transition-all duration-300 cursor-pointer select-none;
+  }
+
+  .day-tab-active {
+    @apply bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-lg shadow-primary-500/30;
+  }
+
+  .day-tab-inactive {
+    @apply bg-dark-800/50 text-dark-300 hover:bg-dark-700/70 hover:text-white;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
