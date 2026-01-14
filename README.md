@@ -103,6 +103,19 @@ A aplicação é totalmente responsiva:
 - **Tablet**: Layout de 2 colunas
 - **Desktop**: Layout de 3 colunas
 
+## 🔐 Autenticação e Sincronização (Supabase)
+
+O app agora suporta login e cadastro para salvar seus dados na nuvem.
+
+### Configuração:
+1. Crie um projeto no [Supabase](https://supabase.com/).
+2. Vá em **Project Settings > API**.
+3. Crie um arquivo `.env` na raiz do projeto (use o `.env.example` como base).
+4. Adicione sua `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+
+### Tabelas Necessárias (SQL):
+Para que a sincronização funcione, você precisará criar as tabelas no Editor SQL do Supabase (instruções detalhadas em breve ou peça para o Antigravity gerar o script).
+
 ## 🎯 Funcionalidades Futuras
 
 - [ ] Timer entre séries

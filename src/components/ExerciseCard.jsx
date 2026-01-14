@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Dumbbell, Save, History } from 'lucide-react';
+import { CheckCircle2, Circle, Dumbbell, Save, History, Cloud, CloudOff, Loader2 } from 'lucide-react';
 import { formatSets } from '../data/workouts';
+import { supabase } from '../lib/supabaseClient';
 
 const ExerciseCard = ({ exercise, index, currentWeek }) => {
     const [completed, setCompleted] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [syncing, setSyncing] = useState(false);
 
     // Load tracking state for current week
     const [logs, setLogs] = useState(() => {
@@ -15,24 +17,83 @@ const ExerciseCard = ({ exercise, index, currentWeek }) => {
     // Get previous week's data for reference
     const [prevLogs, setPrevLogs] = useState(null);
 
+    // Fetch data from Supabase on mount or week change
     useEffect(() => {
-        // Load current week's data when week changes
-        const saved = localStorage.getItem(`exercise-log-${exercise.id}-week-${currentWeek}`);
-        setLogs(saved ? JSON.parse(saved) : exercise.sets.map(() => ({ weight: '', reps: '' })));
+        const fetchData = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-        // Load previous week's data
-        if (currentWeek > 1) {
-            const prevSaved = localStorage.getItem(`exercise-log-${exercise.id}-week-${currentWeek - 1}`);
-            if (prevSaved) setPrevLogs(JSON.parse(prevSaved));
-            else setPrevLogs(null);
-        } else {
-            setPrevLogs(null);
-        }
+            // Fetch current week logs
+            const { data: currentData } = await supabase
+                .from('exercise_logs')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('exercise_id', exercise.id)
+                .eq('week_num', currentWeek);
+
+            if (currentData && currentData.length > 0) {
+                const newLogs = exercise.sets.map((_, sIdx) => {
+                    const found = currentData.find(d => d.set_index === sIdx);
+                    return found ? { weight: found.weight, reps: found.reps } : { weight: '', reps: '' };
+                });
+                setLogs(newLogs);
+                localStorage.setItem(`exercise-log-${exercise.id}-week-${currentWeek}`, JSON.stringify(newLogs));
+            }
+
+            // Fetch previous week logs
+            if (currentWeek > 1) {
+                const { data: prevData } = await supabase
+                    .from('exercise_logs')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('exercise_id', exercise.id)
+                    .eq('week_num', currentWeek - 1);
+
+                if (prevData && prevData.length > 0) {
+                    const pLogs = exercise.sets.map((_, sIdx) => {
+                        const found = prevData.find(d => d.set_index === sIdx);
+                        return found ? { weight: found.weight, reps: found.reps } : { weight: '', reps: '' };
+                    });
+                    setPrevLogs(pLogs);
+                }
+            }
+        };
+
+        fetchData();
     }, [currentWeek, exercise.id, exercise.sets]);
 
-    // Save logs to localStorage
+    // Save logs to Supabase with debounce
     useEffect(() => {
-        localStorage.setItem(`exercise-log-${exercise.id}-week-${currentWeek}`, JSON.stringify(logs));
+        const timer = setTimeout(async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            setSyncing(true);
+            try {
+                const upserts = logs.map((log, sIdx) => ({
+                    user_id: user.id,
+                    exercise_id: exercise.id,
+                    week_num: currentWeek,
+                    set_index: sIdx,
+                    weight: log.weight,
+                    reps: log.reps,
+                    updated_at: new Date().toISOString()
+                }));
+
+                const { error } = await supabase
+                    .from('exercise_logs')
+                    .upsert(upserts, { onConflict: 'user_id,exercise_id,week_num,set_index' });
+
+                if (error) throw error;
+                localStorage.setItem(`exercise-log-${exercise.id}-week-${currentWeek}`, JSON.stringify(logs));
+            } catch (err) {
+                console.error('Error syncing to Supabase:', err);
+            } finally {
+                setSyncing(false);
+            }
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, [logs, exercise.id, currentWeek]);
 
     const handleLogChange = (setIndex, field, value) => {
@@ -64,6 +125,15 @@ const ExerciseCard = ({ exercise, index, currentWeek }) => {
                 {/* Muscle Group Badge */}
                 <div className="absolute top-2 right-2 px-3 py-1 bg-dark-900/90 backdrop-blur-sm rounded-full text-xs font-semibold text-primary-400 border border-primary-500/30">
                     {exercise.muscle}
+                </div>
+
+                {/* Sync Status */}
+                <div className="absolute bottom-2 right-2">
+                    {syncing ? (
+                        <Loader2 className="w-4 h-4 text-primary-400 animate-spin" />
+                    ) : (
+                        <Cloud className="w-4 h-4 text-green-500/50" />
+                    )}
                 </div>
             </div>
 
@@ -155,6 +225,5 @@ const ExerciseCard = ({ exercise, index, currentWeek }) => {
         </div>
     );
 };
-
 
 export default ExerciseCard;

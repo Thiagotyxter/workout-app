@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Trophy, Calendar, TrendingUp, ArrowUpRight, Activity } from 'lucide-react';
+import { CheckCircle2, Circle, Trophy, Calendar, TrendingUp, ArrowUpRight, Activity, Loader2, Cloud } from 'lucide-react';
 import { WORKOUTS } from '../data/workouts';
+import { supabase } from '../lib/supabaseClient';
 
 const ProgressTracker = ({ currentWeek }) => {
     const WEEKS = 12;
     const WORKOUT_TYPES = ['Superior A', 'Inferior A', 'Superior B', 'Inferior B'];
+    const [syncing, setSyncing] = useState(false);
 
     // Initialize progress from localStorage
     const [progress, setProgress] = useState(() => {
@@ -12,18 +14,68 @@ const ProgressTracker = ({ currentWeek }) => {
         return saved ? JSON.parse(saved) : {};
     });
 
+    // Fetch progress from Supabase on mount
+    useEffect(() => {
+        const fetchProgress = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            setSyncing(true);
+            const { data, error } = await supabase
+                .from('workout_logs')
+                .select('*')
+                .eq('user_id', user.id);
+
+            if (data) {
+                const newProgress = {};
+                data.forEach(log => {
+                    newProgress[`week-${log.week_num}-${log.workout_type}`] = true;
+                });
+                setProgress(newProgress);
+                localStorage.setItem('workout-progress-v1', JSON.stringify(newProgress));
+            }
+            setSyncing(false);
+        };
+
+        fetchProgress();
+    }, []);
+
+    const toggleWorkout = async (week, type) => {
+        const key = `week-${week}-${type}`;
+        const isNowDone = !progress[key];
+
+        // Update local state immediately
+        setProgress(prev => ({
+            ...prev,
+            [key]: isNowDone
+        }));
+
+        // Sync with Supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        setSyncing(true);
+        if (isNowDone) {
+            await supabase.from('workout_logs').upsert({
+                user_id: user.id,
+                week_num: week,
+                workout_type: type,
+                completed_at: new Date().toISOString()
+            });
+        } else {
+            await supabase.from('workout_logs')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('week_num', week)
+                .eq('workout_type', type);
+        }
+        setSyncing(false);
+    };
+
     // Save progress to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('workout-progress-v1', JSON.stringify(progress));
     }, [progress]);
-
-    const toggleWorkout = (week, type) => {
-        const key = `week-${week}-${type}`;
-        setProgress(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
 
     const calculateStats = () => {
         const totalPossible = WEEKS * WORKOUT_TYPES.length;
@@ -59,6 +111,16 @@ const ProgressTracker = ({ currentWeek }) => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in space-y-12">
             {/* Header Stats */}
+            <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-bold text-dark-500 uppercase tracking-widest flex items-center gap-2">
+                    Dashboard de Evolução
+                    {syncing ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-primary-400" />
+                    ) : (
+                        <Cloud className="w-3 h-3 text-green-500/50" />
+                    )}
+                </h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="glass-card p-6 flex items-center gap-4">
                     <div className="bg-primary-500/20 p-3 rounded-xl">
