@@ -1,4 +1,3 @@
-```javascript
 import { useState, useEffect } from 'react';
 import { getHistory, clearHistory } from '../services/historyService';
 import AnalysisResult from './AnalysisResult';
@@ -123,15 +122,14 @@ export default function HistoryTable({ onClose, onBack, isFullPage }) {
                                 </thead>
                                 <tbody>
                                     {history.map((entry) => (
-                                        <>
+                                        <React.Fragment key={entry.id}>
                                             <tr
-                                                key={entry.id}
-                                                className={`history - row ${ expandedId === entry.id ? 'expanded' : '' } `}
+                                                className={`history-row ${expandedId === entry.id ? 'expanded' : ''}`}
                                                 onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                                             >
                                                 <td className="cell-thumb">
                                                     {entry.thumbnail ? (
-                                                        <img src={`data: image / jpeg; base64, ${ entry.thumbnail } `} alt="Thumbnail" className="thumb-img" />
+                                                        <img src={`data:image/jpeg;base64,${entry.thumbnail}`} alt="Thumbnail" className="thumb-img" />
                                                     ) : (
                                                         <div className="thumb-placeholder">🎬</div>
                                                     )}
@@ -142,7 +140,7 @@ export default function HistoryTable({ onClose, onBack, isFullPage }) {
                                                     <div className="cell-muscle-mini">{entry.muscleGroup}</div>
                                                 </td>
                                                 <td className="cell-score">
-                                                    <span className={`table - score score - ${ getScoreClass(entry.nota) } `}>
+                                                    <span className={`table-score score-${getScoreClass(entry.nota)}`}>
                                                         {entry.nota.toFixed(1)}
                                                     </span>
                                                 </td>
@@ -167,13 +165,13 @@ export default function HistoryTable({ onClose, onBack, isFullPage }) {
                                                 </td>
                                             </tr>
                                             {expandedId === entry.id && (
-                                                <tr key={`${ entry.id } -detail`} className="history-detail-row">
-                                                    <td colSpan="5">
+                                                <tr className="history-detail-row">
+                                                    <td colSpan="6">
                                                         <AnalysisResult analysis={entry} compact={false} />
                                                     </td>
                                                 </tr>
                                             )}
-                                        </>
+                                        </React.Fragment>
                                     ))}
                                 </tbody>
                             </table>
@@ -184,7 +182,7 @@ export default function HistoryTable({ onClose, onBack, isFullPage }) {
                 {history.length > 0 && (
                     <div className="history-footer">
                         <button
-                            className={`clear - btn ${ confirmClear ? 'confirm' : '' } `}
+                            className={`clear-btn ${confirmClear ? 'confirm' : ''}`}
                             onClick={handleClear}
                         >
                             {confirmClear ? '⚠️ Confirmar exclusão' : '🗑️ Limpar histórico'}
