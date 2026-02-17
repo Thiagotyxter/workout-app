@@ -369,8 +369,31 @@
     font-weight: 500;
 }
 
-.exercise-sets {
+.exercise-structure {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.structure-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+}
+
+.structure-label {
     color: var(--text-muted);
+    font-weight: 400;
+}
+
+.structure-value {
+    color: var(--text-primary);
+    font-weight: 700;
 }
 
 .exercise-actions {

@@ -49,9 +49,14 @@ export default function ExerciseCard({ exercise, index }) {
                             <h3 className="exercise-name">{exercise.name}</h3>
                             <div className="exercise-meta">
                                 <span className="exercise-muscle">{exercise.muscleGroup}</span>
-                                <span className="exercise-sets">
-                                    {exercise.sets}x{exercise.reps}
-                                </span>
+                                <div className="exercise-structure">
+                                    {exercise.structure.map((s, i) => (
+                                        <div key={i} className="structure-item">
+                                            <span className="structure-label">{s.label}:</span>
+                                            <span className="structure-value">{s.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
