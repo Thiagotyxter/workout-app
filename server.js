@@ -35,6 +35,12 @@ db.exec(`
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Logging middleware
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // Middleware for auth
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

@@ -43,7 +43,7 @@ export default function VideoUploadModal({ exercise, onClose, onAnalysisComplete
 
             const result = await analyzeExerciseVideo(
                 videoFile,
-                exercise.name,
+                exercise,
                 exercise.tips
             );
 
