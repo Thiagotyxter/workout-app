@@ -1,50 +1,55 @@
-const STORAGE_KEY = 'workout-analysis-history';
+import { authService } from './authService';
 
-export function getHistory() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEY);
+const API_URL = '/api/history';
+
+export async function getHistory() {
+    const token = authService.getToken();
+    if (!token) {
+        // Fallback to local storage for guests
+        const data = localStorage.getItem('workout-analysis-history');
         return data ? JSON.parse(data) : [];
-    } catch {
+    }
+
+    try {
+        const response = await fetch(API_URL, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Erro ao buscar histórico');
+        return await response.json();
+    } catch (error) {
+        console.error('History fetch error:', error);
         return [];
     }
 }
 
-export function addToHistory(entry) {
-    const history = getHistory();
-    const newEntry = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        date: new Date().toISOString(),
-        exerciseName: entry.exerciseName,
-        muscleGroup: entry.muscleGroup,
-        nota: entry.nota,
-        resumo: entry.resumo,
-        positivos: entry.positivos || [],
-        melhorias: entry.melhorias || [],
-        dicas: entry.dicas || [],
-        riscoLesao: entry.riscoLesao || null,
-        videoThumbnail: entry.videoThumbnail || null,
-    };
-    history.unshift(newEntry);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    return newEntry;
+export async function addToHistory(entry) {
+    const token = authService.getToken();
+    if (!token) {
+        const history = await getHistory();
+        const newEntry = {
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            date: new Date().toISOString(),
+            ...entry,
+        };
+        history.unshift(newEntry);
+        localStorage.setItem('workout-analysis-history', JSON.stringify(history));
+        return newEntry;
+    }
+
+    // Note: Entry is already saved in the database by the analyze-video endpoint
+    // We just return it if needed, or re-fetch history
+    return entry;
 }
 
-export function clearHistory() {
-    localStorage.removeItem(STORAGE_KEY);
-}
+export async function clearHistory() {
+    const token = authService.getToken();
+    if (!token) {
+        localStorage.removeItem('workout-analysis-history');
+        return;
+    }
 
-export function getExerciseHistory(exerciseName) {
-    return getHistory().filter((e) => e.exerciseName === exerciseName);
-}
-
-export function getAverageScore() {
-    const history = getHistory();
-    if (!history.length) return 0;
-    return history.reduce((sum, e) => sum + e.nota, 0) / history.length;
-}
-
-export function getBestScore() {
-    const history = getHistory();
-    if (!history.length) return null;
-    return history.reduce((best, e) => (e.nota > best.nota ? e : best), history[0]);
+    await fetch(API_URL, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
 }

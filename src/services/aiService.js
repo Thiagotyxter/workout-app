@@ -1,15 +1,24 @@
+import { authService } from './authService';
+
 const API_URL = '/api/analyze-video';
 
-export async function analyzeExerciseVideo(videoFile, exerciseName, exerciseTips) {
+export async function analyzeExerciseVideo(videoFile, exercise, exerciseTips) {
+    const token = authService.getToken();
+    if (!token) throw new Error('Você precisa estar logado para analisar vídeos.');
+
     // Extract frames from video since OpenAI works with images
     const frames = await extractFramesFromVideo(videoFile, 6);
 
     const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
             frames,
-            exerciseName,
+            exerciseName: exercise.name,
+            muscleGroup: exercise.muscleGroup,
             exerciseTips,
         }),
     });

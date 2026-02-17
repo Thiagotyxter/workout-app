@@ -1,13 +1,30 @@
 import { useState } from 'react';
 import VideoUploadModal from './VideoUploadModal';
 import AnalysisResult from './AnalysisResult';
+import AuthModal from './AuthModal';
 import { addToHistory } from '../services/historyService';
+import { authService } from '../services/authService';
 import './WorkoutApp.css';
 
 export default function ExerciseCard({ exercise, index }) {
     const [showModal, setShowModal] = useState(false);
+    const [showAuth, setShowAuth] = useState(false);
     const [analysis, setAnalysis] = useState(null);
     const [expanded, setExpanded] = useState(false);
+
+    const handleAnalysisClick = (e) => {
+        e.stopPropagation();
+        if (!authService.isAuthenticated()) {
+            setShowAuth(true);
+        } else {
+            setShowModal(true);
+        }
+    };
+
+    const handleAuthSuccess = () => {
+        setShowAuth(false);
+        setShowModal(true);
+    };
 
     const handleAnalysisComplete = (result) => {
         setAnalysis(result);
@@ -46,10 +63,7 @@ export default function ExerciseCard({ exercise, index }) {
                         )}
                         <button
                             className="analyze-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowModal(true);
-                            }}
+                            onClick={handleAnalysisClick}
                             title="Analisar execução com IA"
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -92,6 +106,13 @@ export default function ExerciseCard({ exercise, index }) {
                     exercise={exercise}
                     onClose={() => setShowModal(false)}
                     onAnalysisComplete={handleAnalysisComplete}
+                />
+            )}
+
+            {showAuth && (
+                <AuthModal
+                    onClose={() => setShowAuth(false)}
+                    onAuthSuccess={handleAuthSuccess}
                 />
             )}
         </>
