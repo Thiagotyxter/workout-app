@@ -9,7 +9,7 @@ import './WorkoutApp.css';
 export default function WorkoutApp() {
     const days = getAllDays();
     const [selectedDay, setSelectedDay] = useState(days[0]);
-    const [showHistory, setShowHistory] = useState(false);
+    const [currentTab, setCurrentTab] = useState('workout'); // 'workout' or 'history'
     const [showAuth, setShowAuth] = useState(false);
     const [user, setUser] = useState(authService.getUser());
 
@@ -67,54 +67,87 @@ export default function WorkoutApp() {
                 </div>
             </header>
 
-            <nav className="day-selector">
-                <div className="day-selector-inner">
-                    {days.map((day) => {
-                        const data = workoutPlan[day];
-                        return (
-                            <button
-                                key={day}
-                                className={`day-btn ${selectedDay === day ? 'active' : ''}`}
-                                onClick={() => setSelectedDay(day)}
-                            >
-                                <span className="day-emoji">{data.emoji}</span>
-                                <span className="day-name">{day.slice(0, 3)}</span>
-                            </button>
-                        );
-                    })}
-                </div>
+            {currentTab === 'workout' ? (
+                <>
+                    <nav className="day-selector">
+                        <div className="day-selector-inner">
+                            {days.map((day) => {
+                                const data = workoutPlan[day];
+                                return (
+                                    <button
+                                        key={day}
+                                        className={`day-btn ${selectedDay === day ? 'active' : ''}`}
+                                        onClick={() => setSelectedDay(day)}
+                                    >
+                                        <span className="day-emoji">{data.emoji}</span>
+                                        <span className="day-name">{day.slice(0, 3)}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </nav>
+
+                    <main className="workout-content">
+                        <div className="workout-header">
+                            <div className="workout-title-row">
+                                <span className="workout-emoji">{dayData.emoji}</span>
+                                <div>
+                                    <h2 className="workout-name">{dayData.name}</h2>
+                                    <p className="workout-focus">{dayData.focus}</p>
+                                </div>
+                            </div>
+                            <div className="workout-stats">
+                                <div className="stat">
+                                    <span className="stat-value">{dayData.exercises.length}</span>
+                                    <span className="stat-label">exercícios</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="exercises-list">
+                            {dayData.exercises.map((exercise, index) => (
+                                <ExerciseCard key={exercise.id} exercise={exercise} index={index} />
+                            ))}
+                        </div>
+                    </main>
+                </>
+            ) : (
+                <main className="history-page">
+                    <HistoryTable onBack={() => setCurrentTab('workout')} isFullPage={true} />
+                </main>
+            )}
+
+            <nav className="bottom-nav">
+                <button
+                    className={`nav-item ${currentTab === 'workout' ? 'active' : ''}`}
+                    onClick={() => setCurrentTab('workout')}
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    <span>Treinos</span>
+                </button>
+                <button
+                    className={`nav-item ${currentTab === 'history' ? 'active' : ''}`}
+                    onClick={() => {
+                        if (user) {
+                            setCurrentTab('history');
+                        } else {
+                            setShowAuth(true);
+                        }
+                    }}
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 8v4l3 3" />
+                        <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span>Histórico</span>
+                </button>
             </nav>
 
-            <main className="workout-content">
-                <div className="workout-header">
-                    <div className="workout-title-row">
-                        <span className="workout-emoji">{dayData.emoji}</span>
-                        <div>
-                            <h2 className="workout-name">{dayData.name}</h2>
-                            <p className="workout-focus">{dayData.focus}</p>
-                        </div>
-                    </div>
-                    <div className="workout-stats">
-                        <div className="stat">
-                            <span className="stat-value">{dayData.exercises.length}</span>
-                            <span className="stat-label">exercícios</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="exercises-list">
-                    {dayData.exercises.map((exercise, index) => (
-                        <ExerciseCard key={exercise.id} exercise={exercise} index={index} />
-                    ))}
-                </div>
-            </main>
-
-            <footer className="app-footer">
-                <p>Envie vídeos dos seus exercícios e receba análise da IA 🤖</p>
-            </footer>
-
-            {showHistory && <HistoryTable onClose={() => setShowHistory(false)} />}
             {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuthSuccess={handleAuthSuccess} />}
         </div>
     );
 }
+```

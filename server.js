@@ -27,6 +27,7 @@ db.exec(`
     exercise_name TEXT,
     muscle_group TEXT,
     nota REAL,
+    thumbnail TEXT,
     data_json TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
@@ -217,12 +218,13 @@ Responda APENAS com JSON válido, sem markdown, sem code blocks:
         // Save to database if connected
         try {
             const stmt = db.prepare(`
-        INSERT INTO analyses (user_id, date, exercise_name, muscle_group, nota, data_json)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO analyses (user_id, date, exercise_name, muscle_group, nota, thumbnail, data_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
             const date = new Date().toISOString();
             const muscleGroup = req.body.muscleGroup || 'Desconhecido';
-            stmt.run(req.user.id, date, exerciseName, muscleGroup, analysis.nota, JSON.stringify(analysis));
+            const thumbnail = req.body.frames && req.body.frames.length > 0 ? req.body.frames[0] : null;
+            stmt.run(req.user.id, date, exerciseName, muscleGroup, analysis.nota, thumbnail, JSON.stringify(analysis));
 
             analysis.id = date; // fallback id for UI
             analysis.date = date;
